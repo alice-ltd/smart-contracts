@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MigrateMsg",
+  "type": "object",
+  "properties": {
+    "aterra_token_addr": {
+      "description": "Anchor aTerra Token Contract address",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "money_market_addr": {
+      "description": "Anchor Money Market Contract address",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "owner": {
+      "description": "account that collects Anchor & relay fees",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

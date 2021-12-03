@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "aterra_token_addr",
+    "decimals",
+    "money_market_addr",
+    "name",
+    "owner",
+    "stable_denom",
+    "symbol"
+  ],
+  "properties": {
+    "aterra_token_addr": {
+      "description": "Anchor aTerra Token contract address",
+      "type": "string"
+    },
+    "decimals": {
+      "description": "decimal places of the derivative token (for UI)",
+      "type": "integer",
+      "format": "uint8",
+      "minimum": 0.0
+    },
+    "money_market_addr": {
+      "description": "Anchor Money Market contract address",
+      "type": "string"
+    },
+    "name": {
+      "description": "name of the derivative token",
+      "type": "string"
+    },
+    "owner": {
+      "description": "account that collects Anchor & relay fees",
+      "type": "string"
+    },
+    "stable_denom": {
+      "description": "stablecoin denom (e.g. uusd)",
+      "type": "string"
+    },
+    "symbol": {
+      "description": "symbol / ticker of the derivative token",
+      "type": "string"
+    }
+  }
+}

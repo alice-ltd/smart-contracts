@@ -1,0 +1,2 @@
+a6365732628d63cb54d2bf01de3f29b93657737211af75364b60561afffd6549  alice_overseer.wasm
+c6f81d1cac6cd41da335da22f73ecb268dbb03c807c0f2d0b9636fdd23e4682d  alice_terra_token.wasm

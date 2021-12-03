@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "register"
+      ],
+      "properties": {
+        "register": {
+          "type": "object",
+          "required": [
+            "contract_addr"
+          ],
+          "properties": {
+            "contract_addr": {
+              "description": "Contract's admin must be this overseer contract",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Initiate migrate timelock for a registered contract",
+      "type": "object",
+      "required": [
+        "initiate_migrate"
+      ],
+      "properties": {
+        "initiate_migrate": {
+          "type": "object",
+          "required": [
+            "contract_addr",
+            "msg",
+            "new_code_id"
+          ],
+          "properties": {
+            "contract_addr": {
+              "type": "string"
+            },
+            "msg": {
+              "$ref": "#/definitions/Binary"
+            },
+            "new_code_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Cancel migrate timelock",
+      "type": "object",
+      "required": [
+        "cancel_migrate"
+      ],
+      "properties": {
+        "cancel_migrate": {
+          "type": "object",
+          "required": [
+            "contract_addr"
+          ],
+          "properties": {
+            "contract_addr": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Execute migrate on registered contract (timelock must be expired)",
+      "type": "object",
+      "required": [
+        "migrate"
+      ],
+      "properties": {
+        "migrate": {
+          "type": "object",
+          "required": [
+            "contract_addr"
+          ],
+          "properties": {
+            "contract_addr": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
+      "type": "string"
+    }
+  }
+}

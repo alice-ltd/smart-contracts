@@ -1,0 +1,27 @@
+[package]
+name = "cosmos-sdk-proto"
+version = "0.7.1" # Also update html_root_url in lib.rs when bumping this
+authors = [
+    "Justin Kilpatrick <justin@althea.net>",
+    "Greg Szabo <greg@informal.systems>",
+    "Tony Arcieri <tony@iqlusion.io>"
+]
+edition = "2018"
+license = "Apache-2.0"
+repository = "https://github.com/cosmos/cosmos-rust/tree/main/cosmos-sdk-proto"
+description = "Protobuf stuct defintions for interacting Cosmos SDK powered blockchains"
+readme = "README.md"
+categories = ["cryptography", "cryptography::cryptocurrencies", "database"]
+keywords = ["blockchain", "cosmos", "tendermint", "proto"]
+
+[dependencies]
+prost = "0.7"
+prost-types = "0.7"
+tendermint-proto = "0.22"
+
+[features]
+cosmwasm = []
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

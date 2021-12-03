@@ -1,0 +1,112 @@
+# Based on https://github.com/actions-rs/example/blob/master/.github/workflows/quickstart.yml
+
+on: [ push ]
+
+name: Basic
+
+jobs:
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.51.0
+          target: wasm32-unknown-unknown
+          override: true
+
+      - name: Run unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --lib --locked
+        env:
+          RUST_BACKTRACE: 1
+
+      - name: Compile WASM contract
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target wasm32-unknown-unknown --workspace --locked
+        env:
+          RUSTFLAGS: "-C link-arg=-s"
+
+  lints:
+    name: Lints
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.51.0
+          override: true
+          components: rustfmt, clippy
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+
+  coverage:
+    name: Code coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: llvm-tools-preview
+      - name: Install grcov
+        run: if [[ ! -e ~/.cargo/bin/grcov ]]; then cargo install grcov; fi
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+        env:
+          RUSTFLAGS: '-Zinstrument-coverage -Awarnings'
+          LLVM_PROFILE_FILE: "alice-%p-%m.profraw"
+      - run: >-
+          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o lcov.info
+          --ignore "/*"
+          --ignore "**/testing/*"
+          --ignore "**/schema.rs"
+          --ignore "**/mock_*.rs"
+      - uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./lcov.info
+
+  e2e:
+    name: End-to-End Test Suite
+    runs-on: ubuntu-latest
+    concurrency: e2e
+    defaults:
+      run:
+        working-directory: ./utils
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+          cache-dependency-path: utils/package-lock.json
+      - run: npm install
+      - run: npm test
