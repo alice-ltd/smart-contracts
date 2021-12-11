@@ -1,5 +1,4 @@
 import { isTxError, LCDClient, Msg, Wallet } from '@terra-money/terra.js';
-import { wallet1 } from './accounts';
 
 const COLUMBUS = {
   URL: 'https://lcd.terra.dev',
@@ -28,7 +27,7 @@ export async function broadcastSingleMsg(
   });
 
   // console.log(JSON.stringify(tx.toData(), null, 2));
-  const result = await terra.tx.broadcast(tx);
+  const result = await wallet.lcd.tx.broadcast(tx);
   if (isTxError(result)) {
     throw new Error('msg error: ' + result.code + ' ' + result.raw_log);
   }
@@ -39,9 +38,10 @@ export async function broadcastSingleMsg(
   return result;
 }
 
-export async function queryUusdBalance(address: string) {
-  const [coins] = await terra.bank.balance(address);
+export async function queryUusdBalance(lcd: LCDClient, address: string) {
+  const [coins] = await lcd.bank.balance(address);
   return coins.get('uusd')!.amount;
 }
 
-export const terra = new LCDClient(BOMBAY);
+export const bombay = new LCDClient(BOMBAY);
+export const columbus = new LCDClient(COLUMBUS);

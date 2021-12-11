@@ -2,13 +2,14 @@
   "name": "alice-contract-utils",
   "version": "1.0.0",
   "scripts": {
+    "deploy": "ts-node src/scripts/deploy.ts",
     "test": "ts-node src/scripts/test.ts",
     "playground": "ts-node src/scripts/playground.ts",
     "generate-relay-unit-test-msgs": "ts-node src/scripts/generateRelayUnitTestMsgs.ts",
     "prettier": "prettier --write src/*.ts"
   },
   "dependencies": {
-    "@terra-money/terra.js": "^2.1.23"
+    "@terra-money/terra.js": "^3.0.1"
   },
   "devDependencies": {
     "prettier": "^2.4.1",

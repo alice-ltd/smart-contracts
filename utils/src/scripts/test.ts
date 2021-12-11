@@ -6,8 +6,8 @@ import {
   queryCW20Balance,
   uploadCode,
 } from '../utils/contract';
-import { broadcastSingleMsg, queryUusdBalance } from '../utils/terra';
-import { wallet1, wallet2 } from '../utils/accounts';
+import { broadcastSingleMsg, queryUusdBalance, bombay } from '../utils/terra';
+import { wallet1, wallet2 } from '../utils/testAccounts';
 import { strict as assert } from 'assert';
 import {
   MsgExecuteContract,
@@ -29,8 +29,9 @@ async function main() {
 
   // await instantiate_all_contracts();
   // await basic_deposit_redeem();
-  // await migrate_timelock();
-  await basic_transfer();
+  // await migrate_token();
+  await migrate_overseer();
+  // await basic_transfer();
 
   async function instantiate_all_contracts() {
     console.log('\n\n## TEST: instantiate_all_contracts ##');
@@ -143,12 +144,13 @@ async function main() {
     await sleep(5000);
 
     let balance = await queryCW20Balance({
+      lcd: bombay,
       contractAddr,
       address: wallet1.key.accAddress,
     });
     assert(balance.greaterThan(0));
 
-    const uusdBalance = await queryUusdBalance(wallet1.key.accAddress);
+    const uusdBalance = await queryUusdBalance(bombay, wallet1.key.accAddress);
     console.log('UST balance', uusdBalance.dividedBy(1e6));
 
     const redeem = await createRedeemStableMsg({
@@ -161,19 +163,23 @@ async function main() {
     console.log('sleep 5s...');
     await sleep(5000);
 
-    const newUusdBalance = await queryUusdBalance(wallet1.key.accAddress);
+    const newUusdBalance = await queryUusdBalance(
+      bombay,
+      wallet1.key.accAddress
+    );
     console.log('new UST balance', newUusdBalance.dividedBy(1e6));
     assert(newUusdBalance.greaterThan(uusdBalance));
 
     balance = await queryCW20Balance({
+      lcd: bombay,
       contractAddr,
       address: wallet1.key.accAddress,
     });
     assert(balance.equals(0));
   }
 
-  async function migrate_timelock() {
-    console.log('\n\n## TEST: migrate_timelock ##');
+  async function migrate_token() {
+    console.log('\n\n## TEST: migrate_token ##');
 
     // Instantiate overseer
     let overseerCodeId;
@@ -268,6 +274,89 @@ async function main() {
     await broadcastSingleMsg(wallet1, migrate, sequence1++);
   }
 
+  async function migrate_overseer() {
+    console.log('\n\n## TEST: migrate_overseer ##');
+
+    // Instantiate overseer & register self
+    let overseerCodeId;
+    ({ codeId: overseerCodeId, sequence: sequence1 } = await uploadCode(
+      wallet1,
+      '../artifacts/alice_overseer.wasm',
+      sequence1++
+    ));
+    const overseerAddr = await deployContract(
+      wallet1,
+      overseerCodeId,
+      {
+        owner: wallet1.key.accAddress,
+        timelock_duration: {
+          time: 15, // seconds
+        },
+      },
+      sequence1++,
+      wallet1.key.accAddress
+    );
+
+    const updateAdminToSelf = new MsgUpdateContractAdmin(
+      wallet1.key.accAddress,
+      overseerAddr,
+      overseerAddr
+    );
+    await broadcastSingleMsg(wallet1, updateAdminToSelf, sequence1++);
+
+    const registerSelf = new MsgExecuteContract(
+      wallet1.key.accAddress,
+      overseerAddr,
+      {
+        register: {
+          contract_addr: overseerAddr,
+        },
+      }
+    );
+    await broadcastSingleMsg(wallet1, registerSelf, sequence1++);
+
+    // upload "new" overseer
+    let newOverseerCodeId;
+    ({ codeId: newOverseerCodeId, sequence: sequence1 } = await uploadCode(
+      wallet1,
+      '../artifacts/alice_overseer.wasm',
+      sequence1++,
+      true
+    ));
+
+    const initiateMigrate = new MsgExecuteContract(
+      wallet1.key.accAddress,
+      overseerAddr,
+      {
+        initiate_migrate: {
+          contract_addr: overseerAddr,
+          msg: Buffer.from(
+            JSON.stringify({ timelock_duration: { time: 60 } })
+          ).toString('base64'),
+          new_code_id: newOverseerCodeId,
+        },
+      }
+    );
+    await broadcastSingleMsg(wallet1, initiateMigrate, sequence1++);
+
+    const migrate = new MsgExecuteContract(
+      wallet1.key.accAddress,
+      overseerAddr,
+      {
+        migrate: {
+          contract_addr: overseerAddr,
+        },
+      }
+    );
+    assert.rejects(() => broadcastSingleMsg(wallet1, migrate, sequence1));
+    console.log('success: timelock not expired error ', migrate);
+
+    // wait for timelock & try again
+    console.log('sleeping 20s for timelock expiration...');
+    await sleep(20 * 1000);
+    await broadcastSingleMsg(wallet1, migrate, sequence1++);
+  }
+
   async function basic_transfer() {
     console.log('\n\n## TEST: basic_transfer ##');
 
@@ -304,10 +393,12 @@ async function main() {
     await sleep(5000);
 
     const balance1 = await queryCW20Balance({
+      lcd: bombay,
       contractAddr,
       address: wallet1.key.accAddress,
     });
     const balance2 = await queryCW20Balance({
+      lcd: bombay,
       contractAddr,
       address: wallet2.key.accAddress,
     });
@@ -323,10 +414,12 @@ async function main() {
     await sleep(5000);
 
     const newBalance1 = await queryCW20Balance({
+      lcd: bombay,
       contractAddr,
       address: wallet1.key.accAddress,
     });
     const newBalance2 = await queryCW20Balance({
+      lcd: bombay,
       contractAddr,
       address: wallet2.key.accAddress,
     });
@@ -337,5 +430,5 @@ async function main() {
 }
 main().catch((e) => {
   console.error(e);
-  throw e;
+  process.exit(1);
 });

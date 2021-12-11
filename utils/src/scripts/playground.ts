@@ -3,9 +3,9 @@ import {
   deployContract,
   uploadCode,
 } from '../utils/contract';
-import { terra } from '../utils/terra';
+import { bombay } from '../utils/terra';
 import { isTxError, ModeInfo, MsgExecuteContract } from '@terra-money/terra.js';
-import { wallet1 } from '../utils/accounts';
+import { wallet1 } from '../utils/testAccounts';
 
 const TESTNET_MONEY_MARKET_ADDR =
   'terra15dwd5mj8v59wpj0wvt233mf5efdff808c5tkal';
@@ -143,7 +143,7 @@ async function main() {
   });
 
   console.log(JSON.stringify(tx.toData(), null, 2));
-  const result = await terra.tx.broadcast(tx);
+  const result = await bombay.tx.broadcast(tx);
   if (isTxError(result)) {
     throw new Error('msg error: ' + result.code + ' ' + result.raw_log);
   }

@@ -2,12 +2,12 @@ import * as fs from 'fs';
 import {
   Int,
   isTxError,
+  LCDClient,
   MsgExecuteContract,
   MsgInstantiateContract,
   MsgStoreCode,
   Wallet,
 } from '@terra-money/terra.js';
-import { terra } from './terra';
 import * as crypto from 'crypto';
 import * as path from 'path';
 
@@ -24,18 +24,19 @@ export async function uploadCode(
   const hashHex = hashSum.digest('hex');
 
   let codeId = -1;
-  let codeIds: Record<string, number> = {};
+  let codeIds: Record<string, Record<string, number>> = {};
 
   const cacheDir = path.join(__dirname, '../../cache/');
   if (!fs.existsSync(cacheDir)) {
     fs.mkdirSync(cacheDir);
   }
 
+  const chainID = wallet.lcd.config.chainID;
   try {
     const codeIdsJson = fs.readFileSync(path.join(cacheDir, 'code_ids.json'));
     codeIds = JSON.parse(codeIdsJson.toString());
-    if (codeIds[hashHex] && !ignoreCache) {
-      codeId = codeIds[hashHex];
+    if (codeIds?.[chainID]?.[hashHex] && !ignoreCache) {
+      codeId = codeIds[chainID][hashHex];
       console.log('Cached Code ID', codeId);
     }
   } catch (e) {
@@ -51,7 +52,7 @@ export async function uploadCode(
       msgs: [upload],
       sequence,
     });
-    const result = await terra.tx.broadcast(tx);
+    const result = await wallet.lcd.tx.broadcast(tx);
     if (isTxError(result)) {
       throw new Error(
         'store code error: ' + result.code + ' ' + result.raw_log
@@ -72,7 +73,10 @@ export async function uploadCode(
     path.join(cacheDir, 'code_ids.json'),
     JSON.stringify({
       ...codeIds,
-      [hashHex]: codeId,
+      [chainID]: {
+        ...codeIds[chainID],
+        [hashHex]: codeId,
+      },
     })
   );
 
@@ -93,7 +97,7 @@ export async function deployContract(
     initMsg
   );
 
-  const result = await terra.tx.broadcast(
+  const result = await wallet.lcd.tx.broadcast(
     await wallet.createAndSignTx({ msgs: [instantiate], sequence })
   );
   if (isTxError(result)) {
@@ -148,13 +152,15 @@ export async function createRedeemStableMsg({
 }
 
 export async function queryCW20Balance({
+  lcd,
   contractAddr,
   address,
 }: {
+  lcd: LCDClient;
   contractAddr: string;
   address: string;
 }) {
-  const query = await terra.wasm.contractQuery<{ balance: string }>(
+  const query = await lcd.wasm.contractQuery<{ balance: string }>(
     contractAddr,
     {
       balance: { address: address },

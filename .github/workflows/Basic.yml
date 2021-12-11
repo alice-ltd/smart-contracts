@@ -103,6 +103,11 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+      - name: Cache deployed contract code IDs
+        uses: actions/cache@v2
+        with:
+          path: utils/cache
+          key: contracts
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
