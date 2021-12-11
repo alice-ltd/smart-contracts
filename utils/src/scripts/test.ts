@@ -27,11 +27,11 @@ function sleep(ms: number) {
 async function main() {
   let sequence1 = await wallet1.sequence();
 
-  // await instantiate_all_contracts();
-  // await basic_deposit_redeem();
-  // await migrate_token();
+  await instantiate_all_contracts();
+  await basic_deposit_redeem();
+  await migrate_token();
   await migrate_overseer();
-  // await basic_transfer();
+  await basic_transfer();
 
   async function instantiate_all_contracts() {
     console.log('\n\n## TEST: instantiate_all_contracts ##');
