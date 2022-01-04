@@ -3,16 +3,30 @@ import {
   deployContract,
   uploadCode,
 } from '../utils/contract';
-import { bombay } from '../utils/terra';
-import { isTxError, ModeInfo, MsgExecuteContract } from '@terra-money/terra.js';
-import { wallet1 } from '../utils/testAccounts';
+import { bombay, broadcastSingleMsg } from '../utils/terra';
+import {
+  AuthorizationGrant,
+  BasicAllowance, Fee, Int,
+  isTxError,
+  ModeInfo,
+  MsgExecuteContract,
+  MsgGrantAllowance, MsgGrantAuthorization, MsgRevokeAllowance,
+  MsgSend, SendAuthorization, SignerData
+} from '@terra-money/terra.js';
+import { wallet1, wallet2, wallet3 } from '../utils/testAccounts';
 
 const TESTNET_MONEY_MARKET_ADDR =
   'terra15dwd5mj8v59wpj0wvt233mf5efdff808c5tkal';
 const TESTNET_ATERRA_TOKEN_ADDR =
   'terra1ajt556dpzvjwl0kl5tzku3fc3p3knkg9mkv8jl';
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function main() {
+  // let sequence1 = await wallet1.sequence();
+
   // const codeId = await uploadCode('../artifacts/alice_terra_token.wasm');
   // const codeId = 19415;
   // const contractAddr = await deployContract(
@@ -29,7 +43,67 @@ async function main() {
   //   "terra1pcl09xsxjmucljksm4xxx3c9hx5pk5qqd3vhsf"
   // );
 
-  const contractAddr = 'terra10zugkw7zu6t6l8cpkua2ujh3cmmet9nc5gak4p';
+  const contractAddr = 'terra1k25sfrksjwu8h33f4dpgjzwcwayf6rsg235guz';
+
+  // console.log(wallet3.key.accAddress)
+
+  // const [grants] = await wallet1.lcd.authz.grants(wallet1.key.accAddress, "terra198y6lrprq5f67wftwf92xksjumzvw7dk99nyzr");
+  // console.log(grants)
+
+  const feegrant = new MsgGrantAllowance(
+    wallet1.key.accAddress,
+    wallet3.key.accAddress,
+    new BasicAllowance(
+      { uusd: (0.2e6).toString() },
+      new Date(Date.now() + 1000 * 60 * 60 * 24 * 365)
+    )
+  );
+  // const feegrant = new MsgRevokeAllowance(
+  //   wallet1.key.accAddress,
+  //   "terra198y6lrprq5f67wftwf92xksjumzvw7dk99nyzr"
+  // );
+  // const authorize = new MsgGrantAuthorization(
+  //   wallet2.key.accAddress,
+  //   wallet3.key.accAddress,
+  //   new AuthorizationGrant(
+  //     new SendAuthorization({uusd: new Int(1e76)}),
+  //     new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10)
+  //   ),
+  // );
+  //
+  //
+  // const signerDatas: SignerData[] = [];
+  // let sequenceNumber;
+  // let publicKey;
+  // const account = await wallet3.lcd.auth.accountInfo(wallet3.key.accAddress);
+  // sequenceNumber = account.getSequenceNumber();
+  // publicKey = account.getPublicKey();
+  // signerDatas.push({
+  //   sequenceNumber,
+  //   publicKey,
+  // });
+  //
+  // const fee = await wallet3.lcd.tx.estimateFee(signerDatas, {
+  //   msgs: [authorize]
+  // });
+  //
+  // const tx = await wallet3.createAndSignTx({
+  //   msgs: [authorize],
+  //   fee: Fee.fromData({
+  //     ...fee.toData(),
+  //     granter: wallet1.key.accAddress,
+  //   })
+  // });
+
+  // const deposit = await createDepositStableMsg({
+  //   contractAddr,
+  //   sender: wallet1.key.accAddress,
+  //   recipient: wallet3.key.accAddress,
+  //   uusd_amount: 100_000_000,
+  // });
+  // await broadcastSingleMsg(wallet1, deposit, sequence1++);
+  // console.log('sleep 5s...');
+  // await sleep(5000);
 
   /*const msg1 = await createTransferMsg(
     'terra14t7mukq06ty7p64cr2xvhvkty56jfh7e70qnkg',
@@ -111,17 +185,23 @@ async function main() {
   // );
   //
 
-  const redeem = new MsgExecuteContract(
-    'terra1pcl09xsxjmucljksm4xxx3c9hx5pk5qqd3vhsf', // sender
-    contractAddr, // contract account address
-    {
-      redeem_stable: {
-        recipient: 'terra1pcl09xsxjmucljksm4xxx3c9hx5pk5qqd3vhsf',
-        burn_amount: '86784044',
-      },
-    }, // handle msg
-    {} // coins
-  );
+  // const redeem = new MsgExecuteContract(
+  //   wallet1.key.accAddress, // sender
+  //   contractAddr, // contract account address
+  //   {
+  //     redeem_stable: {
+  //       recipient: wallet1.key.accAddress,
+  //       burn_amount: '10000000',
+  //     },
+  //   }, // handle msg
+  //   {} // coins
+  // );
+
+  // const msgSend = new MsgSend(
+  //   wallet1.key.accAddress, // sender
+  //   'terra1ph6qqd9khfxp7ak88nvep5ktz05ce2ke760d8f', // recipient
+  //   { uusd: 1_000_000 } // amount
+  // );
 
   // const authorizedDeposit = new MsgExecuteContract(
   //   'terra1pcl09xsxjmucljksm4xxx3c9hx5pk5qqd3vhsf', // sender
@@ -137,17 +217,38 @@ async function main() {
 
   // const send = new MsgSend('terra1pcl09xsxjmucljksm4xxx3c9hx5pk5qqd3vhsf', contractAddr, {uusd: '10000000'})
 
-  const tx = await wallet1.createAndSignTx({
-    msgs: [redeem],
-    // fee: new Fee(1000000, {[Denom.USD]: 1000000}),
-  });
+  // let {account_number, sequence} = await wallet1.accountNumberAndSequence()
+  //
+  // const tx = await wallet1.createAndSignTx({
+  //   msgs: [msgSend],
+  //   sequence,
+  //   accountNumber: account_number,
+  //   fee: new Fee(1000000, {uusd: 500000}),
+  // });
+  //
+  // const tx2 = await wallet1.createAndSignTx({
+  //   msgs: [msgSend],
+  //   sequence: sequence + 1,
+  //   accountNumber: account_number,
+  //   fee: new Fee(1000000, {uusd: 500000}),
+  // });
+  //
+  // console.log('broadcast 1')
+  // const result1 = await bombay.tx.broadcastSync(tx);
+  // console.log(result1);
+  //
+  // console.log('broadcast 2')
+  // const result2 = await bombay.tx.broadcastSync(tx2);
+  // console.log(result2);
 
-  console.log(JSON.stringify(tx.toData(), null, 2));
-  const result = await bombay.tx.broadcast(tx);
-  if (isTxError(result)) {
-    throw new Error('msg error: ' + result.code + ' ' + result.raw_log);
+  try {
+    const tx = await wallet1.createAndSignTx({
+      msgs: [feegrant],
+    });
+   // const res = await wallet1.lcd.tx.broadcastSync(tx);
+  } catch(e: any) {
+    console.log('data', e?.response?.data)
   }
-  console.log(result);
 }
 
 // async function executeEpoch() {

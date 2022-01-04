@@ -1,10 +1,10 @@
 import { MnemonicKey } from '@terra-money/terra.js';
 import { bombay } from './terra';
 
-// terra1pcl09xsxjmucljksm4xxx3c9hx5pk5qqd3vhsf
+// terra1u3lex2u3dnz6wvte0wjukqe0rphansptxatv32
 const mk1 = new MnemonicKey({
   mnemonic:
-    'gasp setup insect party genre fantasy diet heavy sort name hip term urban library program focus table sure friend assist melody eight rice stock',
+    'license hidden roast ensure make topple cloud mad offer crumble defy tuna sweet spray ten gas health about same chunk force about fabric rose',
 });
 export const wallet1 = bombay.wallet(mk1);
 
