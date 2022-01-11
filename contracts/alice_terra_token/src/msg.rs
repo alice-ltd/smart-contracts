@@ -19,6 +19,8 @@ pub struct InstantiateMsg {
     pub money_market_addr: String,
     /// Anchor aTerra Token contract address
     pub aterra_token_addr: String,
+    /// Redeem fee ratio between 0 and 1, default 0
+    pub redeem_fee_ratio: Option<Decimal256>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -91,12 +93,16 @@ pub enum QueryMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {
-    /// account that collects Anchor & relay fees
+    /// symbol / ticker of the derivative token
+    pub symbol: Option<String>,
+    /// account that collects relay tips & redeem fees
     pub owner: Option<String>,
     /// Anchor Money Market Contract address
     pub money_market_addr: Option<String>,
     /// Anchor aTerra Token Contract address
     pub aterra_token_addr: Option<String>,
+    /// Redeem fee ratio between 0 and 1
+    pub redeem_fee_ratio: Option<Decimal256>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

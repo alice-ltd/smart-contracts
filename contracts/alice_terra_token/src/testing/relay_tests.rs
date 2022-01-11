@@ -68,6 +68,7 @@ fn instantiate_bech32_contract(deps: DepsMut) -> (Response, Env) {
         stable_denom: String::from("uusd"),
         money_market_addr: String::from(MONEY_MARKET_ADDR),
         aterra_token_addr: String::from(ATERRA_TOKEN_ADDR),
+        redeem_fee_ratio: None
     };
     let env = mock_bech32_env();
     let info = mock_info(ACCOUNT_1, &[]);

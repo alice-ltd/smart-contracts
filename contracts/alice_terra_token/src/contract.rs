@@ -1,3 +1,4 @@
+use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
     StdResult, Uint128,
@@ -49,6 +50,7 @@ pub fn instantiate(
         owner: deps.api.addr_validate(&msg.owner)?,
         money_market_addr: deps.api.addr_validate(&msg.money_market_addr)?,
         aterra_token_addr: deps.api.addr_validate(&msg.aterra_token_addr)?,
+        redeem_fee_ratio: msg.redeem_fee_ratio.unwrap_or(Decimal256::zero()),
     })?;
 
     Ok(Response::default())
@@ -121,6 +123,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> StdResult<Response> {
     let mut config = config_read(deps.storage).load()?;
 
+    if let Some(symbol) = msg.symbol {
+        TOKEN_INFO.update(deps.storage, |mut token_info| -> StdResult<_> {
+            token_info.symbol = symbol;
+            Ok(token_info)
+        })?;
+    }
+
     if let Some(owner) = msg.owner {
         config.owner = deps.api.addr_validate(&owner)?;
     }
@@ -131,6 +140,10 @@ pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> StdResult<Response>
 
     if let Some(aterra_token_addr) = msg.aterra_token_addr {
         config.aterra_token_addr = deps.api.addr_validate(&aterra_token_addr)?;
+    }
+
+    if let Some(redeem_fee_ratio) = msg.redeem_fee_ratio {
+        config.redeem_fee_ratio = redeem_fee_ratio;
     }
 
     config_mut(deps.storage).save(&config)?;

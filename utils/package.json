@@ -9,12 +9,12 @@
     "prettier": "prettier --write src/*.ts"
   },
   "dependencies": {
-    "@terra-money/terra.js": "^3.0.1"
+    "@terra-money/terra.js": "^3.0.2"
   },
   "devDependencies": {
-    "prettier": "^2.4.1",
+    "prettier": "^2.5.1",
     "ts-node": "^10.4.0",
-    "typescript": "^4.4.4"
+    "typescript": "^4.5.4"
   },
   "prettier": {
     "singleQuote": true
