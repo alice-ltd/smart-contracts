@@ -192,7 +192,7 @@ pub fn execute_redeem_stable(
     let recipient = recipient.unwrap_or_else(|| info.sender.to_string());
 
     // Collect redeem fee
-    let fee_amount = if recipient == config.owner.to_string() {
+    let fee_amount = if recipient == config.owner {
         Uint128::zero()
     } else {
         Uint128::from(config.redeem_fee_ratio * Uint256::from(burn_amount))

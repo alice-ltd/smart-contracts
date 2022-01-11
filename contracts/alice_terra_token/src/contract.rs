@@ -50,7 +50,7 @@ pub fn instantiate(
         owner: deps.api.addr_validate(&msg.owner)?,
         money_market_addr: deps.api.addr_validate(&msg.money_market_addr)?,
         aterra_token_addr: deps.api.addr_validate(&msg.aterra_token_addr)?,
-        redeem_fee_ratio: msg.redeem_fee_ratio.unwrap_or(Decimal256::zero()),
+        redeem_fee_ratio: msg.redeem_fee_ratio.unwrap_or_else(Decimal256::zero),
     })?;
 
     Ok(Response::default())
