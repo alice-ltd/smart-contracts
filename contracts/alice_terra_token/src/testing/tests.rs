@@ -62,7 +62,7 @@ fn instantiate_contract(deps: DepsMut) -> (Response, Env) {
         stable_denom: String::from("uusd"),
         money_market_addr: String::from("money_market_addr"),
         aterra_token_addr: String::from("aterra_token_addr"),
-        redeem_fee_ratio: None
+        redeem_fee_ratio: None,
     };
     let env = mock_env();
     let info = mock_info("owner", &[]);
