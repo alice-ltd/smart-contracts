@@ -1,3 +1,4 @@
+use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::testing::{
     mock_env, mock_info, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
 };
@@ -453,4 +454,114 @@ fn redeem_after_interest_balance_too_low() {
         },
     )
     .unwrap_err();
+}
+
+#[test]
+fn redeem_after_interest_with_fee() {
+    let mut deps = mock_dependencies(&[]);
+
+    // Instantiate contract with 0.5% fee
+    let instantiate_msg = InstantiateMsg {
+        owner: "owner".to_string(),
+        name: String::from("Alice Terra USD"),
+        symbol: String::from("aliceUST"),
+        decimals: 6,
+        stable_denom: String::from("uusd"),
+        money_market_addr: String::from("money_market_addr"),
+        aterra_token_addr: String::from("aterra_token_addr"),
+        redeem_fee_ratio: Some(Decimal256::from_str("0.005").unwrap()),
+    };
+    let env = mock_env();
+    let info = mock_info("owner", &[]);
+    instantiate(deps.as_mut(), env, info, instantiate_msg).unwrap();
+
+    // Deposit 100,000,000 uusd -> 100,000,000 uaUST
+    let mut env = mock_env();
+    execute(
+        deps.as_mut(),
+        env.clone(),
+        mock_info("user1", &coins(100_000_000, "uusd")),
+        ExecuteMsg::DepositStable { recipient: None },
+    )
+    .unwrap();
+    deps.querier.with_token_balances(&[(
+        &"aterra_token_addr".to_string(),
+        &[(
+            &MOCK_CONTRACT_ADDR.to_string(),
+            &Uint128::from(100_000_000_u64),
+        )],
+    )]);
+    reply(deps.as_mut(), env.clone(), OK_DEPOSIT_REPLY).unwrap();
+    deps.querier.with_base(MockQuerier::new(&[(
+        MOCK_CONTRACT_ADDR,
+        &[Coin {
+            denom: "uusd".to_string(),
+            amount: Uint128::from(1_000_000_000_u64),
+        }],
+    )]));
+
+    // 420 blocks later:
+    // UST/aUST exchange rate: say 1.00001592106642
+    // balance: 100,000,000 uaUST = ~100,001,592 uusd
+    env.block.height += 420;
+
+    // Redeem 100,000,000 ualiceUST
+    let res = execute(
+        deps.as_mut(),
+        env.clone(),
+        mock_info("user1", &[]),
+        ExecuteMsg::RedeemStable {
+            recipient: None,
+            burn_amount: Uint128::from(100_000_000_u64),
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        res.messages,
+        vec![SubMsg::reply_always(
+            CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: "aterra_token_addr".to_string(),
+                funds: vec![],
+                msg: to_binary(&Cw20ExecuteMsg::Send {
+                    contract: "money_market_addr".to_string(),
+                    amount: Uint128::from(99_500_000_u64),
+                    msg: to_binary(&MarketCw20HookMsg::RedeemStable {}).unwrap(),
+                })
+                .unwrap(),
+            }),
+            2
+        )]
+    );
+    deps.querier.with_base(MockQuerier::new(&[(
+        MOCK_CONTRACT_ADDR,
+        &[Coin {
+            denom: "uusd".to_string(),
+            amount: Uint128::from(1_000_000_000_u64 + 99_501_584_u64),
+        }],
+    )]));
+
+    // Anchor redeem callback
+    let res = reply(deps.as_mut(), env.clone(), OK_REDEEM_REPLY).unwrap();
+    assert_eq!(
+        res.messages,
+        vec![SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
+            to_address: "user1".to_string(),
+            amount: vec![Coin {
+                denom: "uusd".to_string(),
+                amount: Uint128::from(99_501_584_u64),
+            }],
+        }))]
+    );
+
+    // Check balance is 0
+    let res = query(
+        deps.as_ref(),
+        env,
+        QueryMsg::Balance {
+            address: String::from("user1"),
+        },
+    )
+    .unwrap();
+    let value: BalanceResponse = from_binary(&res).unwrap();
+    assert_eq!(Uint128::zero(), value.balance);
 }
