@@ -1,6 +1,6 @@
 # aliceUST Token
 
-[![codecov](https://codecov.io/gh/Alice-Ltd/smart-contract/branch/main/graph/badge.svg?token=ER41USPZBX)](https://codecov.io/gh/Alice-Ltd/smart-contract)
+[![codecov](https://codecov.io/gh/alice-ltd/smart-contracts/branch/master/graph/badge.svg?token=74K0KLK7MR)](https://codecov.io/gh/alice-ltd/smart-contracts)
 
 See `docs` folder for detailed documentation.
 
