@@ -553,10 +553,10 @@ fn redeem_after_interest_with_fee() {
         }))]
     );
 
-    // Check balance is 0
+    // Check balance of user is 0
     let res = query(
         deps.as_ref(),
-        env,
+        env.clone(),
         QueryMsg::Balance {
             address: String::from("user1"),
         },
@@ -564,4 +564,12 @@ fn redeem_after_interest_with_fee() {
     .unwrap();
     let value: BalanceResponse = from_binary(&res).unwrap();
     assert_eq!(Uint128::zero(), value.balance);
+
+    // Check balance of owner for redeem fee
+    let query_msg = QueryMsg::Balance {
+        address: "owner".to_string(),
+    };
+    let res = query(deps.as_ref(), env, query_msg).unwrap();
+    let value: BalanceResponse = from_binary(&res).unwrap();
+    assert_eq!(Uint128::from(500_000_u64), value.balance);
 }
