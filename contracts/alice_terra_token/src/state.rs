@@ -23,7 +23,7 @@ pub struct Config {
     /// Anchor aTerra Token Contract address
     pub aterra_token_addr: Addr,
     /// Redeem fee ratio between 0 and 1
-    pub redeem_fee_ratio: Decimal256,
+    pub redeem_fee_ratio: Option<Decimal256>,
 }
 
 pub fn config_mut(storage: &mut dyn Storage) -> Singleton<Config> {

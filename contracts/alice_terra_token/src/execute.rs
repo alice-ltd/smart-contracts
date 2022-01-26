@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::Uint256;
+use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{
     coin, BankMsg, Coin, ContractResult, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdError,
     SubMsgExecutionResponse, Uint128,
@@ -195,7 +195,8 @@ pub fn execute_redeem_stable(
     let fee_amount = if recipient == config.owner {
         Uint128::zero()
     } else {
-        Uint128::from(config.redeem_fee_ratio * Uint256::from(burn_amount))
+        let redeem_fee_ratio = config.redeem_fee_ratio.unwrap_or_else(Decimal256::zero);
+        Uint128::from(redeem_fee_ratio * Uint256::from(burn_amount))
     };
     if fee_amount > Uint128::zero() {
         execute_transfer(
