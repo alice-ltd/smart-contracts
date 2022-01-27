@@ -207,7 +207,7 @@ pub fn execute_redeem_stable(
             fee_amount,
         )?;
     }
-    let burn_amount = burn_amount - fee_amount;
+    let final_burn_amount = burn_amount - fee_amount;
 
     let contract_balance =
         query_native_balance(deps.as_ref(), env.contract.address, config.stable_denom)?;
@@ -217,16 +217,18 @@ pub fn execute_redeem_stable(
         prev_stable_balance: contract_balance,
         sender: info.sender,
         recipient: deps.api.addr_validate(recipient.as_str())?,
-        burn_amount,
+        burn_amount: final_burn_amount,
     })?;
 
     // Redeem stable submessage
     let anchor_redeem_res =
-        anchor_redeem_stable(deps.branch(), burn_amount, REDEEM_STABLE_REPLY_ID)?;
+        anchor_redeem_stable(deps.branch(), final_burn_amount, REDEEM_STABLE_REPLY_ID)?;
     Ok(Response::new()
         .add_submessages(anchor_redeem_res.messages)
         .add_attributes(anchor_redeem_res.attributes)
-        .add_attribute("burn_amount", burn_amount))
+        .add_attribute("burn_amount", burn_amount)
+        .add_attribute("final_burn_amount", final_burn_amount)
+        .add_attribute("redeem_fee_amount", fee_amount))
 }
 
 pub fn handle_reply_redeem_stable(
