@@ -1,5 +1,5 @@
 use crate::msg::MigrateMsg;
-use crate::state::{config_mut, Config, CONFIG_KEY};
+use crate::state::{save_config, Config, CONFIG_KEY};
 use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{Addr, DepsMut, StdResult, Storage};
 use cosmwasm_storage::{singleton_read, ReadonlySingleton};
@@ -44,15 +44,18 @@ pub fn migrate_config(deps: DepsMut, msg: MigrateMsg) -> StdResult<()> {
         legacy_config.redeem_fee_ratio = Some(redeem_fee_ratio);
     }
 
-    config_mut(deps.storage).save(&Config {
-        stable_denom: legacy_config.stable_denom,
-        owner: legacy_config.owner,
-        money_market_addr: legacy_config.money_market_addr,
-        aterra_token_addr: legacy_config.aterra_token_addr,
-        redeem_fee_ratio: legacy_config
-            .redeem_fee_ratio
-            .unwrap_or_else(Decimal256::zero),
-    })?;
+    save_config(
+        deps.storage,
+        &Config {
+            stable_denom: legacy_config.stable_denom,
+            owner: legacy_config.owner,
+            money_market_addr: legacy_config.money_market_addr,
+            aterra_token_addr: legacy_config.aterra_token_addr,
+            redeem_fee_ratio: legacy_config
+                .redeem_fee_ratio
+                .unwrap_or_else(Decimal256::zero),
+        },
+    )?;
 
     Ok(())
 }

@@ -16,7 +16,7 @@ use crate::migrate::migrate_config;
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use crate::query::query_relay_nonce;
 use crate::relay::execute_relay;
-use crate::state::{config_mut, Config};
+use crate::state::{save_config, Config};
 
 const CONTRACT_NAME: &str = "crates.io:alice-terra-token";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -45,13 +45,16 @@ pub fn instantiate(
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     // contract configuration information
-    config_mut(deps.storage).save(&Config {
-        stable_denom: msg.stable_denom,
-        owner: deps.api.addr_validate(&msg.owner)?,
-        money_market_addr: deps.api.addr_validate(&msg.money_market_addr)?,
-        aterra_token_addr: deps.api.addr_validate(&msg.aterra_token_addr)?,
-        redeem_fee_ratio: msg.redeem_fee_ratio,
-    })?;
+    save_config(
+        deps.storage,
+        &Config {
+            stable_denom: msg.stable_denom,
+            owner: deps.api.addr_validate(&msg.owner)?,
+            money_market_addr: deps.api.addr_validate(&msg.money_market_addr)?,
+            aterra_token_addr: deps.api.addr_validate(&msg.aterra_token_addr)?,
+            redeem_fee_ratio: msg.redeem_fee_ratio,
+        },
+    )?;
 
     Ok(Response::default())
 }
