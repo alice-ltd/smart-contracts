@@ -86,6 +86,25 @@ fn proper_instantiation() {
 }
 
 #[test]
+fn instantiate_redeem_fee_ratio_greater_than_one() {
+    let mut deps = mock_dependencies(&[]);
+    let msg = InstantiateMsg {
+        owner: "owner".to_string(),
+        name: String::from("Alice Terra USD"),
+        symbol: String::from("aliceUST"),
+        decimals: 6,
+        stable_denom: String::from("uusd"),
+        money_market_addr: String::from("money_market_addr"),
+        aterra_token_addr: String::from("aterra_token_addr"),
+        redeem_fee_ratio: Decimal256::from_str("1.1").unwrap(), // greater than 1
+    };
+    let env = mock_env();
+    let info = mock_info("owner", &[]);
+
+    instantiate(deps.as_mut(), env.clone(), info, msg).unwrap_err();
+}
+
+#[test]
 fn basic_deposit() {
     let mut deps = mock_dependencies(&[]);
     instantiate_contract(deps.as_mut());
