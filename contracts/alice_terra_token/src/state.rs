@@ -32,10 +32,12 @@ fn config_mut(storage: &mut dyn Storage) -> Singleton<Config> {
 
 pub fn save_config(storage: &mut dyn Storage, config: &Config) -> StdResult<()> {
     if config.redeem_fee_ratio > Decimal256::one() {
-        return Err(StdError::generic_err("redeem_fee_ratio must be between 0 and 1").into());
+        return Err(StdError::generic_err(
+            "redeem_fee_ratio must be between 0 and 1",
+        ));
     }
 
-    config_mut(storage).save(&config)?;
+    config_mut(storage).save(config)?;
     Ok(())
 }
 
