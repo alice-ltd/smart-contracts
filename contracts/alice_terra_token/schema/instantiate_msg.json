@@ -8,6 +8,7 @@
     "money_market_addr",
     "name",
     "owner",
+    "redeem_fee_ratio",
     "stable_denom",
     "symbol"
   ],
@@ -36,12 +37,9 @@
     },
     "redeem_fee_ratio": {
       "description": "Redeem fee ratio between 0 and 1, default 0",
-      "anyOf": [
+      "allOf": [
         {
           "$ref": "#/definitions/Decimal256"
-        },
-        {
-          "type": "null"
         }
       ]
     },

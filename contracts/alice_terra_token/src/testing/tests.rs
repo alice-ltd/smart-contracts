@@ -15,6 +15,7 @@ use crate::anchor::{MarketCw20HookMsg, MarketExecuteMsg};
 use crate::contract::instantiate;
 use crate::contract::query;
 use crate::contract::{execute, reply};
+use crate::execute::{DEPOSIT_STABLE_REPLY_ID, REDEEM_STABLE_REPLY_ID};
 use crate::msg::ExecuteMsg;
 use crate::msg::InstantiateMsg;
 use crate::msg::QueryMsg;
@@ -27,11 +28,11 @@ const OK_SUBMSG_RESULT: ContractResult<SubMsgExecutionResponse> =
         data: None,
     });
 const OK_DEPOSIT_REPLY: Reply = Reply {
-    id: 1,
+    id: DEPOSIT_STABLE_REPLY_ID,
     result: OK_SUBMSG_RESULT,
 };
 const OK_REDEEM_REPLY: Reply = Reply {
-    id: 2,
+    id: REDEEM_STABLE_REPLY_ID,
     result: OK_SUBMSG_RESULT,
 };
 

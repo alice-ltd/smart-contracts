@@ -56,7 +56,7 @@ pub enum ExecuteMsg {
         recipient: String,
         amount: Uint128,
     },
-    /// MUST be the config stable denomination, other received denominations will not be returned
+    /// MUST be the config stable denomination
     DepositStable {
         /// Default is tx sender
         recipient: Option<String>,
