@@ -9,7 +9,7 @@ const COLUMBUS = {
 };
 
 const BOMBAY = {
-  URL: 'https://bombay.stakesystems.io',
+  URL: process.env.BOMBAY_LCD ?? 'https://bombay.stakesystems.io',
   chainID: 'bombay-12',
   gasPrices: {
     uusd: 0.15,

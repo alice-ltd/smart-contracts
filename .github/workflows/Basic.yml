@@ -115,3 +115,5 @@ jobs:
           cache-dependency-path: utils/package-lock.json
       - run: npm install
       - run: npm test
+        env:
+          BOMBAY_LCD: ${{ secrets.BOMBAY_LCD }}
