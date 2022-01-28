@@ -92,6 +92,7 @@ async function main() {
         stable_denom: 'uusd',
         money_market_addr: TESTNET_MONEY_MARKET_ADDR,
         aterra_token_addr: TESTNET_ATERRA_TOKEN_ADDR,
+        redeem_fee_ratio: '0.005'
       },
       sequence1++,
       overseerAddr
@@ -220,6 +221,7 @@ async function main() {
         stable_denom: 'uusd',
         money_market_addr: TESTNET_MONEY_MARKET_ADDR,
         aterra_token_addr: TESTNET_ATERRA_TOKEN_ADDR,
+        redeem_fee_ratio: '0.005'
       },
       sequence1++,
       overseerAddr
@@ -378,6 +380,7 @@ async function main() {
         stable_denom: 'uusd',
         money_market_addr: TESTNET_MONEY_MARKET_ADDR,
         aterra_token_addr: TESTNET_ATERRA_TOKEN_ADDR,
+        redeem_fee_ratio: '0.005'
       },
       sequence1++,
       wallet1.key.accAddress
