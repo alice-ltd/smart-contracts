@@ -1,4 +1,3 @@
-use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
     StdResult, Uint128,
@@ -13,10 +12,11 @@ use crate::execute::{
     handle_reply_deposit_stable, handle_reply_redeem_stable, DEPOSIT_STABLE_REPLY_ID,
     REDEEM_STABLE_REPLY_ID,
 };
+use crate::migrate::migrate_config;
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use crate::query::query_relay_nonce;
 use crate::relay::execute_relay;
-use crate::state::{config_mut, config_read, Config};
+use crate::state::{config_mut, Config};
 
 const CONTRACT_NAME: &str = "crates.io:alice-terra-token";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -50,7 +50,7 @@ pub fn instantiate(
         owner: deps.api.addr_validate(&msg.owner)?,
         money_market_addr: deps.api.addr_validate(&msg.money_market_addr)?,
         aterra_token_addr: deps.api.addr_validate(&msg.aterra_token_addr)?,
-        redeem_fee_ratio: Some(msg.redeem_fee_ratio.unwrap_or_else(Decimal256::zero)),
+        redeem_fee_ratio: msg.redeem_fee_ratio,
     })?;
 
     Ok(Response::default())
@@ -121,35 +121,17 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> StdResult<Response> {
-    let mut config = config_read(deps.storage).load()?;
-
-    if let Some(symbol) = msg.symbol {
+    if let Some(symbol) = msg.symbol.clone() {
         TOKEN_INFO.update(deps.storage, |mut token_info| -> StdResult<_> {
             token_info.symbol = symbol;
             Ok(token_info)
         })?;
     }
 
-    if let Some(owner) = msg.owner {
-        config.owner = deps.api.addr_validate(&owner)?;
-    }
-
-    if let Some(money_market_addr) = msg.money_market_addr {
-        config.money_market_addr = deps.api.addr_validate(&money_market_addr)?;
-    }
-
-    if let Some(aterra_token_addr) = msg.aterra_token_addr {
-        config.aterra_token_addr = deps.api.addr_validate(&aterra_token_addr)?;
-    }
-
-    if let Some(redeem_fee_ratio) = msg.redeem_fee_ratio {
-        config.redeem_fee_ratio = Some(redeem_fee_ratio);
-    }
-
-    config_mut(deps.storage).save(&config)?;
-
     // update CW2 version info
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
+    migrate_config(deps, msg)?;
 
     Ok(Response::default())
 }

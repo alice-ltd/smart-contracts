@@ -20,7 +20,7 @@ pub struct InstantiateMsg {
     /// Anchor aTerra Token contract address
     pub aterra_token_addr: String,
     /// Redeem fee ratio between 0 and 1, default 0
-    pub redeem_fee_ratio: Option<Decimal256>,
+    pub redeem_fee_ratio: Decimal256,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

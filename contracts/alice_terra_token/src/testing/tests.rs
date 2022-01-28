@@ -63,7 +63,7 @@ fn instantiate_contract(deps: DepsMut) -> (Response, Env) {
         stable_denom: String::from("uusd"),
         money_market_addr: String::from("money_market_addr"),
         aterra_token_addr: String::from("aterra_token_addr"),
-        redeem_fee_ratio: None,
+        redeem_fee_ratio: Decimal256::zero(),
     };
     let env = mock_env();
     let info = mock_info("owner", &[]);
@@ -469,7 +469,7 @@ fn redeem_after_interest_with_fee() {
         stable_denom: String::from("uusd"),
         money_market_addr: String::from("money_market_addr"),
         aterra_token_addr: String::from("aterra_token_addr"),
-        redeem_fee_ratio: Some(Decimal256::from_str("0.005").unwrap()),
+        redeem_fee_ratio: Decimal256::from_str("0.005").unwrap(),
     };
     let env = mock_env();
     let info = mock_info("owner", &[]);
