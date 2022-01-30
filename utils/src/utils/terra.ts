@@ -1,4 +1,4 @@
-import { isTxError, LCDClient, Msg, Wallet } from '@terra-money/terra.js';
+import { isTxError, LCDClient, Msg, Tx, Wallet } from '@terra-money/terra.js';
 
 const COLUMBUS = {
   URL: 'https://lcd.terra.dev',
@@ -16,6 +16,23 @@ const BOMBAY = {
   },
 };
 
+async function broadcastTx(wallet: Wallet, tx: Tx, retries = 3) {
+  let result;
+  for (let i = 0; i < retries; i++) {
+    try {
+      result = await wallet.lcd.tx.broadcast(tx);
+      break;
+    } catch (e) {
+      if(e?.response?.data?.message === "timed out waiting for tx to be included in a block") {
+        console.log(e);
+        continue;
+      }
+      throw e;
+    }
+  }
+  return result;
+}
+
 export async function broadcastSingleMsg(
   wallet: Wallet,
   msg: Msg,
@@ -27,7 +44,7 @@ export async function broadcastSingleMsg(
   });
 
   // console.log(JSON.stringify(tx.toData(), null, 2));
-  const result = await wallet.lcd.tx.broadcast(tx);
+  const result = await broadcastTx(wallet, tx, 3);
   if (isTxError(result)) {
     throw new Error('msg error: ' + result.code + ' ' + result.raw_log);
   }
