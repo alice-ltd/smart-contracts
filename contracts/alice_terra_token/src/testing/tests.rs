@@ -12,13 +12,14 @@ use cw20::{BalanceResponse, Cw20ExecuteMsg, TokenInfoResponse};
 use std::str::FromStr;
 
 use crate::anchor::{MarketCw20HookMsg, MarketExecuteMsg};
-use crate::contract::instantiate;
 use crate::contract::query;
 use crate::contract::{execute, reply};
+use crate::contract::{instantiate, migrate};
 use crate::execute::{DEPOSIT_STABLE_REPLY_ID, REDEEM_STABLE_REPLY_ID};
-use crate::msg::ExecuteMsg;
 use crate::msg::InstantiateMsg;
 use crate::msg::QueryMsg;
+use crate::msg::{ExecuteMsg, MigrateMsg};
+use crate::state::Config;
 
 use crate::testing::mock_querier::WasmMockQuerier;
 
@@ -76,7 +77,7 @@ fn instantiate_contract(deps: DepsMut) -> (Response, Env) {
 }
 
 #[test]
-fn proper_instantiation() {
+fn basic_instantiation() {
     let mut deps = mock_dependencies(&[]);
     let (_res, env) = instantiate_contract(deps.as_mut());
 
@@ -103,6 +104,34 @@ fn instantiate_redeem_fee_ratio_greater_than_one() {
     let info = mock_info("owner", &[]);
 
     instantiate(deps.as_mut(), env.clone(), info, msg).unwrap_err();
+}
+
+#[test]
+fn basic_migration() {
+    let mut deps = mock_dependencies(&[]);
+    let (_res, env) = instantiate_contract(deps.as_mut());
+
+    // update redeem fee ratio
+    migrate(
+        deps.as_mut(),
+        env.clone(),
+        MigrateMsg {
+            symbol: None,
+            owner: None,
+            money_market_addr: None,
+            aterra_token_addr: None,
+            redeem_fee_ratio: Some(Decimal256::from_str("0.12345").unwrap()),
+        },
+    )
+    .unwrap();
+
+    // verify update
+    let res = query(deps.as_ref(), env, QueryMsg::Config {}).unwrap();
+    let config: Config = from_binary(&res).unwrap();
+    assert_eq!(
+        config.redeem_fee_ratio,
+        Decimal256::from_str("0.12345").unwrap()
+    );
 }
 
 #[test]
