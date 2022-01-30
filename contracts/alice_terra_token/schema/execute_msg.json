@@ -75,7 +75,7 @@
       "additionalProperties": false
     },
     {
-      "description": "MUST be the config stable denomination, other received denominations will not be returned",
+      "description": "MUST be the config stable denomination",
       "type": "object",
       "required": [
         "deposit_stable"

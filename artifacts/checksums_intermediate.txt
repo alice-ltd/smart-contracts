@@ -1,2 +1,2 @@
 2f75643c033a084f9272bde68741478082e478024603845e5c65d605ade953a4  target/wasm32-unknown-unknown/release/alice_overseer.wasm
-462f9828188957a952aaf261ed1943bc1f0a28221701ae168db4c6a52d569766  target/wasm32-unknown-unknown/release/alice_terra_token.wasm
+6385db38710cdf7ac2b36793f047444884966613d01dc7469ac383af242ea649  target/wasm32-unknown-unknown/release/alice_terra_token.wasm

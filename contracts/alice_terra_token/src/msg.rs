@@ -85,6 +85,8 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     /// Relay nonce for the given address
     RelayNonce { address: String },
+    /// Returns the redeem fee ratio
+    Config {},
     /// Implements CW20. Returns the current balance of the given address, 0 if unset.
     Balance { address: String },
     /// Implements CW20. Returns metadata on the contract - name, decimals, supply, etc.

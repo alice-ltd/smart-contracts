@@ -16,7 +16,7 @@ use crate::migrate::migrate_config;
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use crate::query::query_relay_nonce;
 use crate::relay::execute_relay;
-use crate::state::{save_config, Config};
+use crate::state::{config_read, save_config, Config};
 
 const CONTRACT_NAME: &str = "crates.io:alice-terra-token";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -116,6 +116,7 @@ pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, Contract
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::RelayNonce { address } => to_binary(&query_relay_nonce(deps, address)?),
+        QueryMsg::Config {} => to_binary(&config_read(deps.storage).load()?),
         // inherited from cw20-base
         QueryMsg::TokenInfo {} => to_binary(&query_token_info(deps)?),
         QueryMsg::Balance { address } => to_binary(&query_balance(deps, address)?),
