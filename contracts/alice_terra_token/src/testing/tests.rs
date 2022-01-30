@@ -111,12 +111,12 @@ fn basic_migration() {
     let mut deps = mock_dependencies(&[]);
     let (_res, env) = instantiate_contract(deps.as_mut());
 
-    // update redeem fee ratio
+    // update redeem fee ratio and symbol
     migrate(
         deps.as_mut(),
         env.clone(),
         MigrateMsg {
-            symbol: None,
+            symbol: Some("newToken".to_string()),
             owner: None,
             money_market_addr: None,
             aterra_token_addr: None,
@@ -126,12 +126,16 @@ fn basic_migration() {
     .unwrap();
 
     // verify update
-    let res = query(deps.as_ref(), env, QueryMsg::Config {}).unwrap();
+    let res = query(deps.as_ref(), env.clone(), QueryMsg::Config {}).unwrap();
     let config: Config = from_binary(&res).unwrap();
     assert_eq!(
         config.redeem_fee_ratio,
         Decimal256::from_str("0.12345").unwrap()
     );
+
+    let res = query(deps.as_ref(), env, QueryMsg::TokenInfo {}).unwrap();
+    let token_info: TokenInfoResponse = from_binary(&res).unwrap();
+    assert_eq!(token_info.symbol, "newToken".to_string());
 }
 
 #[test]
