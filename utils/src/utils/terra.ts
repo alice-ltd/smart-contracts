@@ -27,7 +27,7 @@ export async function broadcastSingleMsg(
   });
 
   // console.log(JSON.stringify(tx.toData(), null, 2));
-  const result = await wallet.lcd.tx.broadcast(tx);
+  const result = await wallet.lcd.tx.broadcastSync(tx);
   if (isTxError(result)) {
     throw new Error('msg error: ' + result.code + ' ' + result.raw_log);
   }
