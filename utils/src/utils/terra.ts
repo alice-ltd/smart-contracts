@@ -23,31 +23,11 @@ const BOMBAY = {
   },
 };
 
-async function broadcastTx(wallet: Wallet, tx: Tx, retries = 3) {
-  let result;
-  for (let i = 0; i < retries; i++) {
-    try {
-      result = await wallet.lcd.tx.broadcast(tx);
-      break;
-    } catch (e: any) {
-      if (
-        i < retries - 1 &&
-        e?.response?.data?.message ===
-          'timed out waiting for tx to be included in a block'
-      ) {
-        console.log(e);
-        continue;
-      }
-      throw e;
-    }
-  }
-  return result as BlockTxBroadcastResult;
-}
-
 export async function broadcastSingleMsg(
   wallet: Wallet,
   msg: Msg,
-  sequence: number
+  sequence?: number,
+  logMsg: boolean = true
 ) {
   const tx = await wallet.createAndSignTx({
     msgs: [msg],
@@ -55,14 +35,16 @@ export async function broadcastSingleMsg(
   });
 
   // console.log(JSON.stringify(tx.toData(), null, 2));
-  const result = await broadcastTx(wallet, tx, 3);
+  const result = await wallet.lcd.tx.broadcast(tx);
   if (isTxError(result)) {
     throw new Error('msg error: ' + result.code + ' ' + result.raw_log);
   }
   // console.log(result);
 
-  console.log('success: ', result.txhash, msg);
-
+  console.log('success: ', result.txhash);
+  if (logMsg) {
+    console.log(msg);
+  }
   return result;
 }
 

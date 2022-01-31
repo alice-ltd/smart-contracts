@@ -10,6 +10,7 @@ import {
 } from '@terra-money/terra.js';
 import * as crypto from 'crypto';
 import * as path from 'path';
+import { broadcastSingleMsg } from './terra';
 
 export async function uploadCode(
   wallet: Wallet,
@@ -48,16 +49,7 @@ export async function uploadCode(
       wallet.key.accAddress,
       contractCode.toString('base64')
     );
-    const tx = await wallet.createAndSignTx({
-      msgs: [upload],
-      sequence,
-    });
-    const result = await wallet.lcd.tx.broadcast(tx);
-    if (isTxError(result)) {
-      throw new Error(
-        'store code error: ' + result.code + ' ' + result.raw_log
-      );
-    }
+    const result = await broadcastSingleMsg(wallet, upload, sequence, false);
 
     codeId = parseInt(
       result.logs[0].events
@@ -97,9 +89,7 @@ export async function deployContract(
     initMsg
   );
 
-  const result = await wallet.lcd.tx.broadcast(
-    await wallet.createAndSignTx({ msgs: [instantiate], sequence })
-  );
+  const result = await broadcastSingleMsg(wallet, instantiate, sequence, false);
   if (isTxError(result)) {
     throw new Error(
       'instantiate contract error: ' + result.code + ' ' + result.raw_log
