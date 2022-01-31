@@ -5,7 +5,7 @@ use cosmwasm_std::{
 };
 use cw0::{may_pay, must_pay};
 use cw20::BalanceResponse;
-use cw20_base::contract::{execute_burn, execute_mint, query_balance};
+use cw20_base::contract::{execute_burn, execute_mint, execute_transfer, query_balance};
 
 use crate::anchor::{anchor_deposit_stable, anchor_redeem_stable, query_cw20_balance};
 use crate::error::ContractError;
@@ -189,25 +189,45 @@ pub fn execute_redeem_stable(
         return Err(ContractError::BalanceTooLow {});
     }
 
+    let recipient = recipient.unwrap_or_else(|| info.sender.to_string());
+
+    // Collect redeem fee
+    let fee_amount = if recipient == config.owner {
+        Uint128::zero()
+    } else {
+        Uint128::from(config.redeem_fee_ratio * Uint256::from(burn_amount))
+    };
+    if fee_amount > Uint128::zero() {
+        execute_transfer(
+            deps.branch(),
+            env.clone(),
+            info.clone(),
+            config.owner.to_string(),
+            fee_amount,
+        )?;
+    }
+    let final_burn_amount = burn_amount - fee_amount;
+
     let contract_balance =
         query_native_balance(deps.as_ref(), env.contract.address, config.stable_denom)?;
 
     // Save data for reply handler
-    let recipient = recipient.unwrap_or_else(|| info.sender.to_string());
     pending_redeem_stable_mut(deps.storage).save(&PendingRedeemStable {
         prev_stable_balance: contract_balance,
         sender: info.sender,
         recipient: deps.api.addr_validate(recipient.as_str())?,
-        burn_amount,
+        burn_amount: final_burn_amount,
     })?;
 
     // Redeem stable submessage
     let anchor_redeem_res =
-        anchor_redeem_stable(deps.branch(), burn_amount, REDEEM_STABLE_REPLY_ID)?;
+        anchor_redeem_stable(deps.branch(), final_burn_amount, REDEEM_STABLE_REPLY_ID)?;
     Ok(Response::new()
         .add_submessages(anchor_redeem_res.messages)
         .add_attributes(anchor_redeem_res.attributes)
-        .add_attribute("burn_amount", burn_amount))
+        .add_attribute("burn_amount", burn_amount)
+        .add_attribute("final_burn_amount", final_burn_amount)
+        .add_attribute("redeem_fee_amount", fee_amount))
 }
 
 pub fn handle_reply_redeem_stable(

@@ -1,4 +1,5 @@
-use cosmwasm_std::{Addr, Storage, Uint128};
+use cosmwasm_bignumber::Decimal256;
+use cosmwasm_std::{Addr, StdError, StdResult, Storage, Uint128};
 use cosmwasm_storage::{
     bucket, bucket_read, singleton, singleton_read, Bucket, ReadonlyBucket, ReadonlySingleton,
     Singleton,
@@ -21,10 +22,23 @@ pub struct Config {
     pub money_market_addr: Addr,
     /// Anchor aTerra Token Contract address
     pub aterra_token_addr: Addr,
+    /// Redeem fee ratio between 0 and 1
+    pub redeem_fee_ratio: Decimal256,
 }
 
-pub fn config_mut(storage: &mut dyn Storage) -> Singleton<Config> {
+fn config_mut(storage: &mut dyn Storage) -> Singleton<Config> {
     singleton(storage, CONFIG_KEY)
+}
+
+pub fn save_config(storage: &mut dyn Storage, config: &Config) -> StdResult<()> {
+    if config.redeem_fee_ratio > Decimal256::one() {
+        return Err(StdError::generic_err(
+            "redeem_fee_ratio must be between 0 and 1",
+        ));
+    }
+
+    config_mut(storage).save(config)?;
+    Ok(())
 }
 
 pub fn config_read(storage: &dyn Storage) -> ReadonlySingleton<Config> {

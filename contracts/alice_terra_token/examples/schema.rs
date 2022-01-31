@@ -9,6 +9,7 @@ use alice_terra_token::msg::{
     ExchangeRateResponse, ExecuteMsg, InstantiateMsg, MetaTx, MigrateMsg, QueryMsg,
     RelayNonceResponse,
 };
+use alice_terra_token::state::Config;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -27,4 +28,5 @@ fn main() {
     export_schema(&schema_for!(TokenInfoResponse), &out_dir);
     export_schema(&schema_for!(ExchangeRateResponse), &out_dir);
     export_schema(&schema_for!(RelayNonceResponse), &out_dir);
+    export_schema(&schema_for!(Config), &out_dir);
 }

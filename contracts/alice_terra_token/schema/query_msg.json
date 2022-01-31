@@ -24,6 +24,19 @@
       "additionalProperties": false
     },
     {
+      "description": "Returns the redeem fee ratio",
+      "type": "object",
+      "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "Implements CW20. Returns the current balance of the given address, 0 if unset.",
       "type": "object",
       "required": [

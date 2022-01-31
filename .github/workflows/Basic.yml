@@ -92,26 +92,3 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./lcov.info
-
-  e2e:
-    name: End-to-End Test Suite
-    runs-on: ubuntu-latest
-    concurrency: e2e
-    defaults:
-      run:
-        working-directory: ./utils
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-      - name: Cache deployed contract code IDs
-        uses: actions/cache@v2
-        with:
-          path: utils/cache
-          key: contracts
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-          cache: 'npm'
-          cache-dependency-path: utils/package-lock.json
-      - run: npm install
-      - run: npm test

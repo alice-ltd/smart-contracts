@@ -1,4 +1,11 @@
-import { isTxError, LCDClient, Msg, Wallet } from '@terra-money/terra.js';
+import {
+  BlockTxBroadcastResult,
+  isTxError,
+  LCDClient,
+  Msg,
+  Tx,
+  Wallet,
+} from '@terra-money/terra.js';
 
 const COLUMBUS = {
   URL: 'https://lcd.terra.dev',
@@ -9,7 +16,7 @@ const COLUMBUS = {
 };
 
 const BOMBAY = {
-  URL: 'https://bombay.stakesystems.io',
+  URL: process.env.BOMBAY_LCD ?? 'https://bombay.stakesystems.io',
   chainID: 'bombay-12',
   gasPrices: {
     uusd: 0.15,
@@ -19,7 +26,8 @@ const BOMBAY = {
 export async function broadcastSingleMsg(
   wallet: Wallet,
   msg: Msg,
-  sequence: number
+  sequence?: number,
+  logMsg: boolean = true
 ) {
   const tx = await wallet.createAndSignTx({
     msgs: [msg],
@@ -33,8 +41,10 @@ export async function broadcastSingleMsg(
   }
   // console.log(result);
 
-  console.log('success: ', result.txhash, msg);
-
+  console.log('success: ', result.txhash);
+  if (logMsg) {
+    console.log(msg);
+  }
   return result;
 }
 
