@@ -73,10 +73,8 @@ pub fn execute(
             public_key,
         } => execute_relay(deps, env, info, meta_tx, signature, public_key),
         ExecuteMsg::DepositStableAuthorized {
-            sender,
-            recipient,
-            amount,
-        } => execute_deposit_stable_authorized(deps, env, info, sender, recipient, amount),
+            recipient, amount, ..
+        } => execute_deposit_stable_authorized(deps, env, info, recipient, amount),
         ExecuteMsg::DepositStable { recipient } => {
             execute_deposit_stable(deps, env, info, recipient)
         }

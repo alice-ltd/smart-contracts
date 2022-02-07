@@ -224,7 +224,7 @@ fn deposit_authorized() {
         env.clone(),
         mock_info("owner", &coins(0_600_000, "uusd")),
         ExecuteMsg::DepositStableAuthorized {
-            sender: "user1".to_string(),
+            sender: Some("user1".to_string()),
             recipient: "user1".to_string(),
             amount: Uint128::from(100_000_000_u64),
         },
@@ -285,7 +285,7 @@ fn deposit_authorized_tax_funds_too_low() {
         env.clone(),
         mock_info("owner", &coins(0_599_000, "uusd")),
         ExecuteMsg::DepositStableAuthorized {
-            sender: "user1".to_string(),
+            sender: Some("user1".to_string()),
             recipient: "user1".to_string(),
             amount: Uint128::from(100_000_000_u64),
         },
