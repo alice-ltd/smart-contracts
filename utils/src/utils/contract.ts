@@ -50,6 +50,9 @@ export async function uploadCode(
       contractCode.toString('base64')
     );
     const result = await broadcastSingleMsg(wallet, upload, sequence, false);
+    if(!result.logs) {
+      throw new Error('No logs returned from store code');
+    }
 
     codeId = parseInt(
       result.logs[0].events
@@ -94,6 +97,10 @@ export async function deployContract(
     throw new Error(
       'instantiate contract error: ' + result.code + ' ' + result.raw_log
     );
+  }
+
+  if(!result.logs) {
+    throw new Error('No logs returned from instantiate contract');
   }
 
   const contractAddress =

@@ -25,9 +25,9 @@ const BOMBAY = {
 
 async function broadcastTx(wallet: Wallet, tx: Tx) {
   const result = await wallet.lcd.tx.broadcastSync(tx);
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 50; i++) {
     // query txhash
-    const data = await wallet.lcd.tx.txInfo(result.txhash);
+    const data = await wallet.lcd.tx.txInfo(result.txhash).catch(() => {});
     // if hash is onchain return data
     if (data) return data;
     // else wait 250ms and then repeat
