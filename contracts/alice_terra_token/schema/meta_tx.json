@@ -106,8 +106,7 @@
               "type": "object",
               "required": [
                 "amount",
-                "recipient",
-                "sender"
+                "recipient"
               ],
               "properties": {
                 "amount": {
@@ -117,7 +116,11 @@
                   "type": "string"
                 },
                 "sender": {
-                  "type": "string"
+                  "deprecated": true,
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               }
             }
