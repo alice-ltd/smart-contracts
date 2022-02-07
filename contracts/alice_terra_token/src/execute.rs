@@ -26,7 +26,6 @@ pub fn execute_deposit_stable_authorized(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    sender: String,
     recipient: String,
     amount: Uint128,
 ) -> Result<Response, ContractError> {
@@ -52,7 +51,7 @@ pub fn execute_deposit_stable_authorized(
         msgs: vec![prost_types::Any {
             type_url: "/cosmos.bank.v1beta1.MsgSend".to_string(),
             value: proto_encode(MsgSend {
-                from_address: sender,
+                from_address: recipient.clone(),
                 to_address: env.contract.address.to_string(),
                 amount: vec![cosmos_sdk_proto::cosmos::base::v1beta1::Coin {
                     denom: config.stable_denom,

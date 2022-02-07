@@ -52,7 +52,8 @@ pub enum ExecuteMsg {
     /// Use a SendAuthorization to retrieve the stablecoin amount from 'sender'
     /// Only executable by owner
     DepositStableAuthorized {
-        sender: String,
+        #[deprecated]
+        sender: Option<String>, // ignored
         recipient: String,
         amount: Uint128,
     },
