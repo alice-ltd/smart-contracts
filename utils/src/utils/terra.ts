@@ -23,6 +23,19 @@ const BOMBAY = {
   },
 };
 
+async function broadcastTx(wallet: Wallet, tx: Tx) {
+  const result = await wallet.lcd.tx.broadcastSync(tx);
+  for (let i = 0; i < 10; i++) {
+    // query txhash
+    const data = await wallet.lcd.tx.txInfo(result.txhash);
+    // if hash is onchain return data
+    if (data) return data;
+    // else wait 250ms and then repeat
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error('Transaction is not onchain');
+}
+
 export async function broadcastSingleMsg(
   wallet: Wallet,
   msg: Msg,
@@ -35,11 +48,10 @@ export async function broadcastSingleMsg(
   });
 
   // console.log(JSON.stringify(tx.toData(), null, 2));
-  const result = await wallet.lcd.tx.broadcast(tx);
+  const result = await broadcastTx(wallet, tx);
   if (isTxError(result)) {
     throw new Error('msg error: ' + result.code + ' ' + result.raw_log);
   }
-  // console.log(result);
 
   console.log('success: ', result.txhash);
   if (logMsg) {
