@@ -2,9 +2,7 @@
   "name": "alice-contract-utils",
   "version": "1.0.0",
   "scripts": {
-    "deploy": "ts-node src/scripts/deploy.ts",
     "test": "ts-node src/scripts/test.ts",
-    "playground": "ts-node src/scripts/playground.ts",
     "generate-relay-unit-test-msgs": "ts-node src/scripts/generateRelayUnitTestMsgs.ts",
     "prettier": "prettier --write src/*.ts"
   },
