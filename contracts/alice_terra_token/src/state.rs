@@ -24,6 +24,8 @@ pub struct Config {
     pub aterra_token_addr: Addr,
     /// Redeem fee ratio between 0 and 1
     pub redeem_fee_ratio: Decimal256,
+    /// Redeem fee cap (in stablecoin denom)
+    pub redeem_fee_cap: Uint128,
 }
 
 fn config_mut(storage: &mut dyn Storage) -> Singleton<Config> {

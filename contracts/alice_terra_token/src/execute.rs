@@ -7,7 +7,9 @@ use cw0::{may_pay, must_pay};
 use cw20::BalanceResponse;
 use cw20_base::contract::{execute_burn, execute_mint, execute_transfer, query_balance};
 
-use crate::anchor::{anchor_deposit_stable, anchor_redeem_stable, query_cw20_balance};
+use crate::anchor::{
+    anchor_deposit_stable, anchor_redeem_stable, query_aterra_exchange_rate, query_cw20_balance,
+};
 use crate::error::ContractError;
 
 use crate::query::query_native_balance;
@@ -194,7 +196,15 @@ pub fn execute_redeem_stable(
     let fee_amount = if recipient == config.owner {
         Uint128::zero()
     } else {
-        Uint128::from(config.redeem_fee_ratio * Uint256::from(burn_amount))
+        let aterra_exchange_rate = query_aterra_exchange_rate(
+            deps.as_ref(),
+            env.block.height,
+            Some(config.money_market_addr.to_string()),
+        )?;
+        Uint128::min(
+            Uint128::from(config.redeem_fee_ratio * Uint256::from(burn_amount)),
+            Uint128::from(Uint256::from(config.redeem_fee_cap) / aterra_exchange_rate),
+        )
     };
     if fee_amount > Uint128::zero() {
         execute_transfer(

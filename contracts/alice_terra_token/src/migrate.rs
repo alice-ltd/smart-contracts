@@ -1,7 +1,7 @@
 use crate::msg::MigrateMsg;
 use crate::state::{save_config, Config, CONFIG_KEY};
 use cosmwasm_bignumber::Decimal256;
-use cosmwasm_std::{Addr, DepsMut, StdResult, Storage};
+use cosmwasm_std::{Addr, DepsMut, StdResult, Storage, Uint128};
 use cosmwasm_storage::{singleton_read, ReadonlySingleton};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -19,6 +19,8 @@ pub struct LegacyConfig {
     pub aterra_token_addr: Addr,
     /// Redeem fee ratio between 0 and 1
     pub redeem_fee_ratio: Option<Decimal256>,
+    /// Redeem fee cap (in stablecoin denom)
+    pub redeem_fee_cap: Option<Uint128>,
 }
 
 fn legacy_config_read(storage: &dyn Storage) -> ReadonlySingleton<LegacyConfig> {
@@ -44,6 +46,10 @@ pub fn migrate_config(deps: DepsMut, msg: MigrateMsg) -> StdResult<()> {
         legacy_config.redeem_fee_ratio = Some(redeem_fee_ratio);
     }
 
+    if let Some(redeem_fee_cap) = msg.redeem_fee_cap {
+        legacy_config.redeem_fee_cap = Some(redeem_fee_cap);
+    }
+
     save_config(
         deps.storage,
         &Config {
@@ -54,6 +60,7 @@ pub fn migrate_config(deps: DepsMut, msg: MigrateMsg) -> StdResult<()> {
             redeem_fee_ratio: legacy_config
                 .redeem_fee_ratio
                 .unwrap_or_else(Decimal256::zero),
+            redeem_fee_cap: legacy_config.redeem_fee_cap.unwrap_or_else(Uint128::zero),
         },
     )?;
 

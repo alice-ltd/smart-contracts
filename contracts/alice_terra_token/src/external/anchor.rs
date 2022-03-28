@@ -1,3 +1,4 @@
+use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{
     to_binary, Addr, Coin, CosmosMsg, Deps, DepsMut, QueryRequest, Response, StdResult, SubMsg,
     Uint128, WasmMsg, WasmQuery,
@@ -7,6 +8,31 @@ use crate::state::config_read;
 use cw20::Cw20ExecuteMsg;
 
 pub use crate::external::anchor_msg::{MarketCw20HookMsg, MarketExecuteMsg, MarketQueryMsg};
+
+/// Determine UST/aUST exchange rate
+pub fn query_aterra_exchange_rate(
+    deps: Deps,
+    block_height: u64,
+    money_market_addr: Option<String>,
+) -> StdResult<Decimal256> {
+    // make `addr` Option to reduce number of config reads
+    let money_market_addr = money_market_addr.unwrap_or({
+        let config = config_read(deps.storage).load()?;
+        config.money_market_addr.to_string()
+    });
+
+    let epoch_state_response = deps
+        .querier
+        .query::<MarketEpochStateResponse>(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: money_market_addr,
+            msg: to_binary(&MarketQueryMsg::EpochState {
+                block_height: Some(block_height),
+                distributed_interest: None,
+            })?,
+        }))
+        .unwrap();
+    Ok(epoch_state_response.exchange_rate)
+}
 
 pub fn query_cw20_balance(deps: Deps, cw20_addr: Addr, addr: Addr) -> StdResult<Uint128> {
     let balance_response = deps
