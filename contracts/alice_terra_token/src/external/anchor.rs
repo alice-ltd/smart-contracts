@@ -7,7 +7,9 @@ use cosmwasm_std::{
 use crate::state::config_read;
 use cw20::Cw20ExecuteMsg;
 
-pub use crate::external::anchor_msg::{MarketCw20HookMsg, MarketExecuteMsg, MarketQueryMsg};
+pub use crate::external::anchor_msg::{
+    MarketCw20HookMsg, MarketEpochStateResponse, MarketExecuteMsg, MarketQueryMsg,
+};
 
 /// Determine UST/aUST exchange rate
 pub fn query_aterra_exchange_rate(

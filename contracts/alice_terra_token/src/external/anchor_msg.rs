@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::Uint256;
+use cosmwasm_bignumber::{Decimal256, Uint256};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -23,4 +23,10 @@ pub enum MarketQueryMsg {
         block_height: Option<u64>,
         distributed_interest: Option<Uint256>,
     },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MarketEpochStateResponse {
+    pub exchange_rate: Decimal256,
+    pub aterra_supply: Uint256,
 }

@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::Decimal256;
+use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{
     mock_env, mock_info, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
 };
@@ -49,6 +49,11 @@ pub fn mock_dependencies(
         &[(&MOCK_CONTRACT_ADDR.to_string(), &Uint128::zero())],
     )]);
 
+    custom_querier.with_epoch_state(&[(
+        &"money_market_addr".to_string(),
+        &(Uint256::from(0u64), Decimal256::one()),
+    )]);
+
     OwnedDeps {
         storage: MockStorage::default(),
         api: MockApi::default(),
@@ -66,6 +71,7 @@ fn instantiate_contract(deps: DepsMut) -> (Response, Env) {
         money_market_addr: String::from("money_market_addr"),
         aterra_token_addr: String::from("aterra_token_addr"),
         redeem_fee_ratio: Decimal256::zero(),
+        redeem_fee_cap: Uint128::MAX,
     };
     let env = mock_env();
     let info = mock_info("owner", &[]);
@@ -99,6 +105,7 @@ fn instantiate_redeem_fee_ratio_greater_than_one() {
         money_market_addr: String::from("money_market_addr"),
         aterra_token_addr: String::from("aterra_token_addr"),
         redeem_fee_ratio: Decimal256::from_str("1.1").unwrap(), // greater than 1
+        redeem_fee_cap: Uint128::MAX,
     };
     let env = mock_env();
     let info = mock_info("owner", &[]);
@@ -121,6 +128,7 @@ fn basic_migration() {
             money_market_addr: None,
             aterra_token_addr: None,
             redeem_fee_ratio: Some(Decimal256::from_str("0.12345").unwrap()),
+            redeem_fee_cap: Some(Uint128::from(50_u128)),
         },
     )
     .unwrap();
@@ -132,6 +140,7 @@ fn basic_migration() {
         config.redeem_fee_ratio,
         Decimal256::from_str("0.12345").unwrap()
     );
+    assert_eq!(config.redeem_fee_cap, Uint128::from(50_u128));
 
     let res = query(deps.as_ref(), env, QueryMsg::TokenInfo {}).unwrap();
     let token_info: TokenInfoResponse = from_binary(&res).unwrap();
@@ -523,6 +532,7 @@ fn redeem_after_interest_with_fee() {
         money_market_addr: String::from("money_market_addr"),
         aterra_token_addr: String::from("aterra_token_addr"),
         redeem_fee_ratio: Decimal256::from_str("0.005").unwrap(),
+        redeem_fee_cap: Uint128::MAX,
     };
     let env = mock_env();
     let info = mock_info("owner", &[]);

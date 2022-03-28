@@ -53,6 +53,7 @@ pub fn instantiate(
             money_market_addr: deps.api.addr_validate(&msg.money_market_addr)?,
             aterra_token_addr: deps.api.addr_validate(&msg.aterra_token_addr)?,
             redeem_fee_ratio: msg.redeem_fee_ratio,
+            redeem_fee_cap: msg.redeem_fee_cap,
         },
     )?;
 

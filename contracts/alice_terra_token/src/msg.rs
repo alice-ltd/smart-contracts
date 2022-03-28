@@ -21,6 +21,8 @@ pub struct InstantiateMsg {
     pub aterra_token_addr: String,
     /// Redeem fee ratio between 0 and 1, default 0
     pub redeem_fee_ratio: Decimal256,
+    /// Redeem fee cap (in stablecoin denom), default max u128
+    pub redeem_fee_cap: Uint128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -106,6 +108,8 @@ pub struct MigrateMsg {
     pub aterra_token_addr: Option<String>,
     /// Redeem fee ratio between 0 and 1
     pub redeem_fee_ratio: Option<Decimal256>,
+    /// Redeem fee cap (in stablecoin denom)
+    pub redeem_fee_cap: Option<Uint128>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -60,7 +60,7 @@ pub fn migrate_config(deps: DepsMut, msg: MigrateMsg) -> StdResult<()> {
             redeem_fee_ratio: legacy_config
                 .redeem_fee_ratio
                 .unwrap_or_else(Decimal256::zero),
-            redeem_fee_cap: legacy_config.redeem_fee_cap.unwrap_or_else(Uint128::zero),
+            redeem_fee_cap: legacy_config.redeem_fee_cap.unwrap_or(Uint128::MAX),
         },
     )?;
 

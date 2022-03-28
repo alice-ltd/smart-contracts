@@ -1,5 +1,7 @@
+use cosmwasm_bignumber::{Decimal256, Uint256};
 use std::collections::HashMap;
 
+use crate::anchor::{MarketEpochStateResponse, MarketQueryMsg};
 use cosmwasm_std::testing::MockQuerier;
 use cosmwasm_std::{
     from_binary, from_slice, to_binary, ContractResult, Decimal, Querier, QuerierResult,
@@ -14,6 +16,7 @@ use terra_cosmwasm::{TaxCapResponse, TaxRateResponse, TerraQuery, TerraQueryWrap
 pub struct WasmMockQuerier {
     base: MockQuerier<TerraQueryWrapper>,
     tax_querier: TaxQuerier,
+    epoch_state_querier: EpochStateQuerier,
     token_querier: TokenQuerier,
 }
 
@@ -75,6 +78,31 @@ pub(crate) fn balances_to_map(
     balances_map
 }
 
+#[derive(Clone, Default)]
+pub struct EpochStateQuerier {
+    // this lets us iterate over all pairs that match the first string
+    // {contract_addr: (aterra_supply, exchange_rate)}
+    epoch_state: HashMap<String, (Uint256, Decimal256)>,
+}
+
+impl EpochStateQuerier {
+    pub fn new(epoch_state: &[(&String, &(Uint256, Decimal256))]) -> Self {
+        EpochStateQuerier {
+            epoch_state: epoch_state_to_map(epoch_state),
+        }
+    }
+}
+
+pub(crate) fn epoch_state_to_map(
+    epoch_state: &[(&String, &(Uint256, Decimal256))],
+) -> HashMap<String, (Uint256, Decimal256)> {
+    let mut epoch_state_map: HashMap<String, (Uint256, Decimal256)> = HashMap::new();
+    for (market_contract, epoch_state) in epoch_state.iter() {
+        epoch_state_map.insert((*market_contract).clone(), **epoch_state);
+    }
+    epoch_state_map
+}
+
 impl Querier for WasmMockQuerier {
     fn raw_query(&self, bin_request: &[u8]) -> QuerierResult {
         // MockQuerier doesn't support Custom, so we ignore it completely here
@@ -120,27 +148,44 @@ impl WasmMockQuerier {
                 }
             }
             QueryRequest::Wasm(WasmQuery::Smart { contract_addr, msg }) => match from_binary(msg) {
-                Ok(Cw20QueryMsg::Balance { address }) => {
-                    match self.token_querier.balances.get(contract_addr) {
-                        Some(balances) => match balances.get(address.as_str()) {
-                            Some(balance) => SystemResult::Ok(ContractResult::from(to_binary(
-                                &BalanceResponse { balance: *balance },
-                            ))),
+                Ok(MarketQueryMsg::EpochState {
+                    block_height: _,
+                    distributed_interest: _,
+                }) => match self.epoch_state_querier.epoch_state.get(contract_addr) {
+                    Some(v) => SystemResult::Ok(ContractResult::from(to_binary(
+                        &MarketEpochStateResponse {
+                            aterra_supply: v.0,
+                            exchange_rate: v.1,
+                        },
+                    ))),
+                    None => SystemResult::Err(SystemError::InvalidRequest {
+                        error: "No epoch state exists".to_string(),
+                        request: msg.as_slice().into(),
+                    }),
+                },
+                _ => match from_binary(msg) {
+                    Ok(Cw20QueryMsg::Balance { address }) => {
+                        match self.token_querier.balances.get(contract_addr) {
+                            Some(balances) => match balances.get(address.as_str()) {
+                                Some(balance) => SystemResult::Ok(ContractResult::from(to_binary(
+                                    &BalanceResponse { balance: *balance },
+                                ))),
+                                None => SystemResult::Err(SystemError::InvalidRequest {
+                                    error: "Balance not found".to_string(),
+                                    request: msg.clone(),
+                                }),
+                            },
                             None => SystemResult::Err(SystemError::InvalidRequest {
-                                error: "Balance not found".to_string(),
+                                error: format!(
+                                    "No balance info exists for the contract {}",
+                                    contract_addr
+                                ),
                                 request: msg.clone(),
                             }),
-                        },
-                        None => SystemResult::Err(SystemError::InvalidRequest {
-                            error: format!(
-                                "No balance info exists for the contract {}",
-                                contract_addr
-                            ),
-                            request: msg.clone(),
-                        }),
+                        }
                     }
-                }
-                _ => panic!("Unsupported Wasm query"),
+                    _ => panic!("Unsupported Wasm query"),
+                },
             },
             _ => self.base.handle_query(request),
         }
@@ -152,6 +197,7 @@ impl WasmMockQuerier {
         WasmMockQuerier {
             base,
             tax_querier: TaxQuerier::default(),
+            epoch_state_querier: EpochStateQuerier::default(),
             token_querier: TokenQuerier::default(),
         }
     }
@@ -165,7 +211,10 @@ impl WasmMockQuerier {
         self.tax_querier = TaxQuerier::new(rate, caps);
     }
 
-    #[allow(dead_code)]
+    pub fn with_epoch_state(&mut self, epoch_state: &[(&String, &(Uint256, Decimal256))]) {
+        self.epoch_state_querier = EpochStateQuerier::new(epoch_state);
+    }
+
     pub fn with_token_balances(&mut self, balances: &[(&String, &[(&String, &Uint128)])]) {
         self.token_querier = TokenQuerier::new(balances);
     }

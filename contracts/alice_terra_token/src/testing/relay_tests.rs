@@ -70,6 +70,7 @@ fn instantiate_bech32_contract(deps: DepsMut) -> (Response, Env) {
         money_market_addr: String::from(MONEY_MARKET_ADDR),
         aterra_token_addr: String::from(ATERRA_TOKEN_ADDR),
         redeem_fee_ratio: Decimal256::zero(),
+        redeem_fee_cap: Uint128::MAX,
     };
     let env = mock_bech32_env();
     let info = mock_info(ACCOUNT_1, &[]);
