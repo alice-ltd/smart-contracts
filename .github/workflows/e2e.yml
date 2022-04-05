@@ -29,3 +29,6 @@ jobs:
       - run: npm test
         env:
           BOMBAY_LCD: ${{ secrets.BOMBAY_LCD }}
+          TEST_MNEMONIC_1: ${{ secrets.TEST_MNEMONIC_1 }}
+          TEST_MNEMONIC_2: ${{ secrets.TEST_MNEMONIC_2 }}
+

@@ -78,7 +78,7 @@ pub fn execute_relay(
         | ExecuteMsg::Send { .. } => {
             let mut as_user_info = info;
             let human_addr = deps.api.addr_humanize(&canonical_addr)?;
-            as_user_info.sender = human_addr;
+            as_user_info.sender = human_addr.clone();
 
             // Collect tip
             let tip = meta_tx.tip.unwrap_or_default();
@@ -96,7 +96,7 @@ pub fn execute_relay(
             // Execute msg as user
             let result = contract::execute(deps, env, as_user_info, meta_tx.msg);
             match result {
-                Ok(response) => Ok(response),
+                Ok(response) => Ok(response.add_attribute("relay_sender", &human_addr.to_string())),
                 Err(err) => {
                     // if tip > 0, collect tip even when relayed msg errors
                     if tip > Uint128::zero() {
